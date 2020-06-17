@@ -1,3 +1,5 @@
+from random import randint
+
 
 def print_state(cells):
     print("---------")
@@ -5,42 +7,19 @@ def print_state(cells):
         print(f'| {cells[y][0]} {cells[y][1]} {cells[y][2]} |')
     print("---------")
 
-valid_coords = ["1", "2", "3"]
-numbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
-cells = [[" ", " ", " "], [" ", " ", " "], [" ", " ", " "]]
-field = input()
-for i in range(9):
-    symbol = field[i]
-    if symbol == '_':
-        symbol = ' '
-    cells[i // 3][i % 3] = symbol
-print_state(cells)
 
-player = ["X", "O"]
-if field.count('X') == field.count('O'):
-    turn = 0
-else:
-    turn = 1
-while True:
-    while True:
-        move = input("Enter the coordinates:")
-        if " " not in move:
-            print("You should enter numbers!")
-            continue
-        else:
-            x, y = move.split()
-        if not x.isnumeric() and not y.isnumeric():
-            print("You should enter numbers!")
-        elif x not in valid_coords or y not in valid_coords:
-            print("Coordinates should be from 1 to 3!")
-        elif cells[3 - int(y)][int(x) - 1] in "XO":
-            print("This cell is occupied! Choose another one!")
-        else:
-            cells[3 - int(y)][int(x) - 1] = player[turn % 2]
-            turn += 1
-            break
-    print_state(cells)
+def input_start_grid():
+    grid = [[" ", " ", " "], [" ", " ", " "], [" ", " ", " "]]
+    field = input()
+    for i in range(9):
+        symbol = field[i]
+        if symbol == '_':
+            symbol = ' '
+        grid[i // 3][i % 3] = symbol
+    return grid
 
+
+def get_state():
     empty_cell = any([cell == " " for row in cells for cell in row])
     x3 = cells[0] == ["X", "X", "X"] or cells[1] == ["X", "X", "X"] or cells[2] == ["X", "X", "X"] \
          or (cells[0][0] == "X" and cells[1][0] == "X" and cells[2][0] == "X") \
@@ -57,13 +36,71 @@ while True:
 
     if not x3 and not o3:
         if empty_cell:
-            print('Game not finished')
+            return 'Next'
         else:
-            print("Draw")
-        break
+            return 'Draw'
     elif x3:
-        print("X wins")
-        break
+        return 'X wins'
     elif o3:
-        print("O wins")
-        break
+        return 'O wins'
+
+
+def computer_play_easy():
+    print('Making move level "easy"')
+    found_cell = False
+    while not found_cell:
+        x = randint(0, 2)
+        y = randint(0, 2)
+        if cells[x][y] == " ":
+            cells[x][y] = "O"
+            found_cell = True
+
+
+# Init
+valid_coords = ["1", "2", "3"]
+numbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
+cells = [[" ", " ", " "], [" ", " ", " "], [" ", " ", " "]]
+print_state(cells)
+
+player = ["X", "O"]
+'''
+if field.count('X') == field.count('O'):
+    turn = 0
+else:
+    turn = 1
+'''
+
+# Loop start
+state = 'start'
+
+loop = 0
+
+while not 'wins' in state:
+    move = input("Enter the coordinates:")
+    if " " not in move:
+        print("You should enter numbers!")
+        continue
+    else:
+        x, y = move.split()
+    if not x.isnumeric() and not y.isnumeric():
+        print("You should enter numbers!")
+    elif x not in valid_coords or y not in valid_coords:
+        print("Coordinates should be from 1 to 3!")
+    elif cells[3 - int(y)][int(x) - 1] in "XO":
+        print("This cell is occupied! Choose another one!")
+    else:
+        # Turns
+        # cells[3 - int(y)][int(x) - 1] = player[turn % 2]
+        cells[3 - int(y)][int(x) - 1] = "X"
+        print_state(cells)
+        # turn += 1
+        computer_play_easy()
+        print_state(cells)
+
+    state = get_state()
+    if state != 'Next':
+        print(state)
+
+    loop += 1
+    if loop > 9:
+        exit()
