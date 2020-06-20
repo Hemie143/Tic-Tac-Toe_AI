@@ -1,5 +1,12 @@
 from random import randint
 
+class Player:
+
+    def __init__(self, type, symbol):
+        self.type = type
+        self.symbol = symbol
+
+
 class TicTacToe:
 
     valid_coords = ["1", "2", "3"]
@@ -9,6 +16,9 @@ class TicTacToe:
         self.cells = [[" ", " ", " "], [" ", " ", " "], [" ", " ", " "]]
         self.state = 'play'
         self.end = False
+        self.playerX = Player('', 'X')
+        self.playerO = Player('', 'O')
+        # self.symbol_map = {self.playerX: 'X', self.playerO: 'O'}
 
     def print_grid(self):
         print("---------")
@@ -52,34 +62,18 @@ class TicTacToe:
             self.state = 'O wins'
             self.end = True
 
-    def computer_play_easy(self):
+    def play_computer_easy(self, player):
         print('Making move level "easy"')
         found_cell = False
         while not found_cell:
             x = randint(0, 2)
             y = randint(0, 2)
             if self.cells[x][y] == " ":
-                self.cells[x][y] = "O"
+                self.cells[x][y] = player.symbol
                 found_cell = True
 
-    def run(self):
-        # Init
-        self.print_grid()
-
-        player = ["X", "O"]
-        '''
-        if field.count('X') == field.count('O'):
-            turn = 0
-        else:
-            turn = 1
-        '''
-
-        # Loop start
-        state = 'start'
-
-        loop = 0
-
-        while not self.end:
+    def play_user(self, player):
+        while True:
             move = input("Enter the coordinates:")
             if " " not in move:
                 print("You should enter numbers!")
@@ -94,21 +88,36 @@ class TicTacToe:
                 print("This cell is occupied! Choose another one!")
             else:
                 # Turns
-                # cells[3 - int(y)][int(x) - 1] = player[turn % 2]
-                self.cells[3 - int(y)][int(x) - 1] = "X"
-                self.print_grid()
-                # turn += 1
-                self.computer_play_easy()
-                self.print_grid()
+                self.cells[3 - int(y)][int(x) - 1] = player.symbol
+                break
 
-            self.get_state()
-            if 'play' not in self.state:
-                print(self.state)
+    def play(self):
+        while not self.end:
+            for player in [self.playerX, self.playerO]:
+                if player.type == 'easy':
+                    self.play_computer_easy(player)
+                elif player.type == 'user':
+                    self.play_user(player)
+                self.print_grid()
+                self.get_state()
+                if 'play' not in self.state:
+                    print(self.state)
+                    break
 
-            loop += 1
-            if loop > 1:
+    def run_menu(self):
+        while True:
+            print('Input command:')
+            command = input()
+            if command == 'exit':
                 exit()
+            if command.startswith('start') and command.count(' ') == 2:
+                _, typeX, typeO = command.split(' ')
+                self.playerX.type = typeX
+                self.playerO.type = typeO
+                self.play()
+            else:
+                print('Bad parameters!')
 
 
 game = TicTacToe()
-game.run()
+game.run_menu()
