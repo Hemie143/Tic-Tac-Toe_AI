@@ -7,6 +7,7 @@ class Player:
         self.symbol = symbol
 
 
+
 class TicTacToe:
 
     valid_coords = ["1", "2", "3"]
@@ -16,14 +17,12 @@ class TicTacToe:
         self.cells = [[" ", " ", " "], [" ", " ", " "], [" ", " ", " "]]
         self.state = 'play'
         self.end = False
-        self.playerX = Player('', 'X')
-        self.playerO = Player('', 'O')
-        # self.symbol_map = {self.playerX: 'X', self.playerO: 'O'}
 
     def print_grid(self):
         print("---------")
         for y in range(0, 3):
-            print(f'| {self.cells[y][0]} {self.cells[y][1]} {self.cells[y][2]} |')
+            # print(f'| {self.cells[y][0]} {self.cells[y][1]} {self.cells[y][2]} |')
+            print(f'| {' '.join(cells[y])} |')
         print("---------")
 
     def input_start_grid(self):
@@ -62,124 +61,34 @@ class TicTacToe:
             self.state = 'O wins'
             self.end = True
 
-    @staticmethod
-    def count_symbol(line, symbol):
-        # returns 3, if 3 symbols
-        # returns 2, if 2 symbols and 3rd cell is free
-        # returns -1, if 2 symbols and 3rd cell is taken by opponent
-        # returns 0 or 1 in other cases
-        count = line.count(symbol)
-        if count == 3:
-            return 3
-        elif count == 2:
-            opposite_symbol = 'X' if symbol == 'O' else 'O'
-            if line.count(opposite_symbol) == 1:
-                return -1
-            else:
-                return 2
-        else:
-            return count
-        return
-
-    def check_row(self, row_number, symbol):
-        row = self.cells[row_number]
-        return self.count_symbol(row, symbol)
-
-    def check_column(self, col_number, symbol):
-        column = [r[col_number] for r in self.cells]
-        return self.count_symbol(column, symbol)
-
-    def check_diagonal(self, diagonal, symbol):
-        if diagonal == 1:
-            diag = [self.cells[i][i] for i in range(0, 3)]
-        elif diagonal == 2:
-            diag = [self.cells[i][2-i] for i in range(0, 3)]
-        return self.count_symbol(diag, symbol)
-
-    def fill_row(self, n, symbol, symbol_new):
-        for i in range(0, 3):
-            cell = self.cells[n][i]
-            if cell != symbol and cell == ' ':
-                self.cells[n][i] = symbol_new
-
-    def fill_column(self, n, symbol, symbol_new):
-        for i in range(0, 3):
-            cell = self.cells[i][n]
-            if cell != symbol and cell == ' ':
-                self.cells[i][n] = symbol_new
-
-    def fill_diagonal(self, n, symbol, symbol_new):
-        if n == 1:
-            for i in range(0, 3):
-                cell = self.cells[i][i]
-                if cell != symbol and cell == ' ':
-                    self.cells[i][i] = symbol_new
-        elif n == 2:
-            for i in range(0, 3):
-                cell = self.cells[i][2-i]
-                if cell != symbol and cell == ' ':
-                    self.cells[i][2-i] = symbol_new
-
-    def play_computer_easy(self, player):
+    def computer_play_easy(self):
         print('Making move level "easy"')
         found_cell = False
         while not found_cell:
             x = randint(0, 2)
             y = randint(0, 2)
             if self.cells[x][y] == " ":
-                self.cells[x][y] = player.symbol
+                self.cells[x][y] = "O"
                 found_cell = True
 
-    def play_computer_medium(self, player):
-        print('Making move level "medium"')
-        found_cell = False
-        # Win in one move ?
-        for i in range(0, 3):
-            if self.check_row(i, player.symbol) == 2:
-                self.fill_row(i, player.symbol, player.symbol)
-                found_cell = True
-                break
-        if not found_cell:
-            for i in range(0, 3):
-                if self.check_column(i, player.symbol) == 2:
-                    self.fill_column(i, player.symbol, player.symbol)
-                    found_cell = True
-                    break
-        if not found_cell:
-            for i in range(1, 2):
-                if self.check_diagonal(i, player.symbol) == 2:
-                    self.fill_diagonal(i, player.symbol, player.symbol)
-                    found_cell = True
-                    break
-        # Check opponent win in one move
-        opposite_symbol = 'X' if player.symbol == 'O' else 'O'
-        if not found_cell:
-            for i in range(0, 3):
-                if self.check_row(i, player.symbol) == 2:
-                    self.fill_row(i, player.symbol, opposite_symbol)
-                    found_cell = True
-                    break
-        if not found_cell:
-            for i in range(0, 3):
-                if self.check_column(i, player.symbol) == 2:
-                    self.fill_column(i, player.symbol, opposite_symbol)
-                    found_cell = True
-                    break
-        if not found_cell:
-            for i in range(1, 2):
-                if self.check_diagonal(i, player.symbol) == 2:
-                    self.fill_diagonal(i, player.symbol, opposite_symbol)
-                    found_cell = True
-                    break
-        while not found_cell:
-            x = randint(0, 2)
-            y = randint(0, 2)
-            if self.cells[x][y] == " ":
-                self.cells[x][y] = player.symbol
-                found_cell = True
+    def run(self):
+        # Init
+        self.print_grid()
 
-    def play_user(self, player):
-        while True:
+        player = ["X", "O"]
+        '''
+        if field.count('X') == field.count('O'):
+            turn = 0
+        else:
+            turn = 1
+        '''
+
+        # Loop start
+        state = 'start'
+
+        loop = 0
+
+        while not self.end:
             move = input("Enter the coordinates:")
             if " " not in move:
                 print("You should enter numbers!")
@@ -194,39 +103,21 @@ class TicTacToe:
                 print("This cell is occupied! Choose another one!")
             else:
                 # Turns
-                self.cells[3 - int(y)][int(x) - 1] = player.symbol
-                break
-
-    def play(self):
-        while not self.end:
-            for player in [self.playerX, self.playerO]:
-                if player.type == 'easy':
-                    self.play_computer_easy(player)
-                if player.type == 'medium':
-                    self.play_computer_medium(player)
-                elif player.type == 'user':
-                    self.play_user(player)
+                # cells[3 - int(y)][int(x) - 1] = player[turn % 2]
+                self.cells[3 - int(y)][int(x) - 1] = "X"
                 self.print_grid()
-                self.get_state()
-                if 'play' not in self.state:
-                    print(self.state)
-                    break
+                # turn += 1
+                self.computer_play_easy()
+                self.print_grid()
 
-    def run_menu(self):
-        while True:
-            print('Input command:')
-            command = input()
-            if command == 'exit':
+            self.get_state()
+            if 'play' not in self.state:
+                print(self.state)
+
+            loop += 1
+            if loop > 1:
                 exit()
-            if command.startswith('start') and command.count(' ') == 2:
-                _, typeX, typeO = command.split(' ')
-                self.playerX.type = typeX
-                self.playerO.type = typeO
-                self.play()
-            else:
-                print('Bad parameters!')
-            # exit()
 
 
 game = TicTacToe()
-game.run_menu()
+game.run()
