@@ -30,7 +30,8 @@ class UserPlayer(Player):
                 # Turns
                 # cells[3 - int(y)][int(x) - 1] = player[turn % 2]
                 grid.write_cell(3 - int(y), int(x) - 1, "X")
-                grid.moves.remove((x, y))
+                coords = [3 - int(y), int(x) - 1]
+                grid.moves.remove(coords)
                 break
 
 
@@ -40,7 +41,7 @@ class AIEasyPlayer(Player):
         move = choice(grid.moves)
         x, y = move
         grid.write_cell(x, y, self.symbol)
-        grid.moves.remove((x, y))
+        grid.moves.remove(tuple[x, y])
         '''
         found_cell = False
         while not found_cell:
@@ -73,9 +74,9 @@ class Grid:
              ([0, 0], [1, 1], [2, 1]), ([2, 0], [1, 1], [0, 2])
              ]
 
-    all_moves = [(0, 0), (1, 0), (2, 0),
-                 (0, 1), (1, 1), (2, 1),
-                 (0, 2), (1, 2), (2, 2)]
+    all_moves = [[0, 0], [1, 0], [2, 0],
+                 [0, 1], [1, 1], [2, 1],
+                 [0, 2], [1, 2], [2, 2]]
 
     def __init__(self):
         self.state = 'play'
