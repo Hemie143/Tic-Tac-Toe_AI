@@ -29,43 +29,49 @@ class UserPlayer(Player):
             else:
                 # Turns
                 # cells[3 - int(y)][int(x) - 1] = player[turn % 2]
-                grid.write_cell(3 - int(y), int(x) - 1, "X")
-                coords = [3 - int(y), int(x) - 1]
-                grid.moves.remove(coords)
+                grid.write_cell(3 - int(y), int(x) - 1, self.symbol)
                 break
 
 
 class AIEasyPlayer(Player):
 
     def random_move(self, grid):
-        move = choice(grid.moves)
-        x, y = move
-        grid.write_cell(x, y, self.symbol)
-        grid.moves.remove(tuple[x, y])
-        '''
-        found_cell = False
-        while not found_cell:
-            x = randint(0, 2)
-            y = randint(0, 2)
-            if grid.read_cell(x, y) == " ":
-                found_cell = True
-        '''
+        if grid.moves:
+            move = choice(grid.moves)
+            grid.write_cell(move[0], move[1], self.symbol)
 
     def play(self, grid):
         print(f'Making move level "{self.level}"')
         self.random_move(grid)
 
-class AIMediumPlayer(Player):
+class AIMediumPlayer(AIEasyPlayer):
+
+    def check_win(self, grid):
+        for coords in grid.lines:
+            line = [grid.read_cell(x, y) for x, y in coords]
+            if line.count(self.symbol) == 2:
+                grid.write_line(coords, self.symbol, self.symbol)
+                return True
+
+    def check_win_opponent(self, grid):
+        symbol_opponent = 'X' if self.symbol == 'O' else 'O'
+        for coords in grid.lines:
+            line = [grid.read_cell(x, y) for x, y in coords]
+            if line.count(self.symbol) == 2:
+                grid.write_line(coords, self.symbol, symbol_opponent)
+                return True
 
     def play(self, grid):
         print(f'Making move level "{self.level}"')
-        found_cell = False
-        while not found_cell:
-            x = randint(0, 2)
-            y = randint(0, 2)
-            if grid.read_cell(x, y) == " ":
-                grid.write_cell(x, y, self.symbol)
-                found_cell = True
+        found = self.check_win(grid)
+        if not found:
+            found = self.check_win_opponent(grid)
+        if not found:
+            super().random_move(grid)
+
+# class AIHardPlayer(AIMediumPlayer):
+
+
 
 class Grid:
 
@@ -74,9 +80,9 @@ class Grid:
              ([0, 0], [1, 1], [2, 1]), ([2, 0], [1, 1], [0, 2])
              ]
 
-    all_moves = [[0, 0], [1, 0], [2, 0],
-                 [0, 1], [1, 1], [2, 1],
-                 [0, 2], [1, 2], [2, 2]]
+    all_moves = [(0, 0), (1, 0), (2, 0),
+                 (0, 1), (1, 1), (2, 1),
+                 (0, 2), (1, 2), (2, 2)]
 
     def __init__(self):
         self.state = 'play'
@@ -90,6 +96,14 @@ class Grid:
 
     def write_cell(self, x, y, value):
         self.cells[x][y] = value
+        self.moves.remove((x, y))
+
+    def write_line(self, coords, symbol, symbol_new):
+        for x, y in coords:
+            cell = self.cells[x][y]
+            if cell != symbol and cell == ' ':
+                self.cells[x][y] = symbol_new
+                self.moves.remove((x, y))
 
     def read_cell(self, x, y):
         return self.cells[x][y]
@@ -139,6 +153,8 @@ class TicTacToe:
             return AIEasyPlayer(level, symbol)
         elif level == 'medium':
             return AIMediumPlayer(level, symbol)
+        elif level == 'hard':
+            return AIHardPlayer(level, symbol)
 
     def run(self):
         self.grid.print_grid()
