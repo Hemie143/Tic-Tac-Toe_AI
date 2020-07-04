@@ -1,5 +1,5 @@
 from random import randint, choice
-
+from copy import deepcopy
 
 class Player:
 
@@ -32,7 +32,6 @@ class UserPlayer(Player):
                 grid.write_cell(3 - int(y), int(x) - 1, self.symbol)
                 break
 
-
 class AIEasyPlayer(Player):
 
     def random_move(self, grid):
@@ -46,6 +45,10 @@ class AIEasyPlayer(Player):
 
 class AIMediumPlayer(AIEasyPlayer):
 
+    @staticmethod
+    def get_opponent_symbol(symbol):
+        return 'X' if symbol == 'O' else 'O'
+
     def check_win(self, grid):
         for coords in grid.lines:
             line = [grid.read_cell(x, y) for x, y in coords]
@@ -54,7 +57,7 @@ class AIMediumPlayer(AIEasyPlayer):
                 return True
 
     def check_win_opponent(self, grid):
-        symbol_opponent = 'X' if self.symbol == 'O' else 'O'
+        symbol_opponent = self.get_opponent_symbol(self.symbol)
         for coords in grid.lines:
             line = [grid.read_cell(x, y) for x, y in coords]
             if line.count(self.symbol) == 2:
@@ -69,7 +72,47 @@ class AIMediumPlayer(AIEasyPlayer):
         if not found:
             super().random_move(grid)
 
-# class AIHardPlayer(AIMediumPlayer):
+class AIHardPlayer(AIMediumPlayer):
+
+    def play(self, grid):
+        print(f'Making move level "{self.level}"')
+        _, coords = self.minimax(grid, self.symbol)
+        grid.write_cell(coords[0], coords[1], self.symbol)
+
+    def minimax(self, grid, turn):
+        symbol_opponent = self.get_opponent_symbol(self.symbol)
+        if grid.eval(self.symbol):
+            return 10, None
+        if grid.eval(symbol_opponent):
+            return -10, None
+        if len(grid.moves) == 0:
+            return 0, None
+
+        next_turn = self.get_opponent_symbol(turn)
+        moves_scores = {}
+        for x, y in grid.moves:
+            grid_after_move = Grid()
+            grid_after_move.cells = deepcopy(grid.cells)
+            grid_after_move.moves = grid.moves[:]
+            grid_after_move.write_cell(x, y, turn)
+            score, coords = self.minimax(grid_after_move, next_turn)
+            moves_scores[(x, y)] = score
+
+        best_coords = None
+        if self.symbol == turn:
+            best_score = -100
+            for coords, score in moves_scores.items():
+                if score > best_score:
+                    best_score = score
+                    best_coords = coords
+        else:
+            best_score = 100
+            for coords, score in moves_scores.items():
+                if score < best_score:
+                    best_score = score
+                    best_coords = coords
+
+        return best_score, best_coords
 
 
 
@@ -135,6 +178,11 @@ class Grid:
             self.state = 'O wins'
             self.win = True
 
+    def eval(self, symbol):
+        for coords in self.lines:
+            if all([self.cells[x][y] == symbol for x, y in coords]):
+                return True
+        return False
 
 class TicTacToe:
 
