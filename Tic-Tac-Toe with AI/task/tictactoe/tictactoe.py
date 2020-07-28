@@ -32,6 +32,7 @@ class UserPlayer(Player):
                 grid.write_cell(3 - int(y), int(x) - 1, self.symbol)
                 break
 
+
 class AIEasyPlayer(Player):
 
     def random_move(self, grid):
@@ -43,6 +44,7 @@ class AIEasyPlayer(Player):
         print(f'Making move level "{self.level}"')
         self.random_move(grid)
 
+
 class AIMediumPlayer(AIEasyPlayer):
 
     @staticmethod
@@ -50,18 +52,20 @@ class AIMediumPlayer(AIEasyPlayer):
         return 'X' if symbol == 'O' else 'O'
 
     def check_win(self, grid):
-        for coords in grid.lines:
-            line = [grid.read_cell(x, y) for x, y in coords]
-            if line.count(self.symbol) == 2:
-                grid.write_line(coords, self.symbol, self.symbol)
-                return True
-
-    def check_win_opponent(self, grid):
         symbol_opponent = self.get_opponent_symbol(self.symbol)
         for coords in grid.lines:
             line = [grid.read_cell(x, y) for x, y in coords]
-            if line.count(self.symbol) == 2:
-                grid.write_line(coords, self.symbol, symbol_opponent)
+            if line.count(self.symbol) == 2 and line.count(symbol_opponent) == 0:
+                grid.write_line(coords, self.symbol)
+                return True
+
+    def check_win_opponent(self, grid):
+        # TODO: does not always work ???
+        symbol_opponent = self.get_opponent_symbol(self.symbol)
+        for coords in grid.lines:
+            line = [grid.read_cell(x, y) for x, y in coords]
+            if line.count(symbol_opponent) == 2 and line.count(self.symbol) == 0:
+                grid.write_line(coords, self.symbol)
                 return True
 
     def play(self, grid):
@@ -71,6 +75,7 @@ class AIMediumPlayer(AIEasyPlayer):
             found = self.check_win_opponent(grid)
         if not found:
             super().random_move(grid)
+
 
 class AIHardPlayer(AIMediumPlayer):
 
@@ -115,12 +120,11 @@ class AIHardPlayer(AIMediumPlayer):
         return best_score, best_coords
 
 
-
 class Grid:
 
     lines = [([0, 0], [0, 1], [0, 2]), ([1, 0], [1, 1], [1, 2]), ([2, 0], [2, 1], [2, 2]),
-             ([0, 0], [1, 0], [2, 0]), ([0, 1], [1, 1], [2, 1]), ([0, 2], [2, 2], [2, 2]),
-             ([0, 0], [1, 1], [2, 1]), ([2, 0], [1, 1], [0, 2])
+             ([0, 0], [1, 0], [2, 0]), ([0, 1], [1, 1], [2, 1]), ([0, 2], [1, 2], [2, 2]),
+             ([0, 0], [1, 1], [2, 2]), ([2, 0], [1, 1], [0, 2])
              ]
 
     all_moves = [(0, 0), (1, 0), (2, 0),
@@ -141,12 +145,13 @@ class Grid:
         self.cells[x][y] = value
         self.moves.remove((x, y))
 
-    def write_line(self, coords, symbol, symbol_new):
+    def write_line(self, coords, symbol):
         for x, y in coords:
             cell = self.cells[x][y]
             if cell != symbol and cell == ' ':
-                self.cells[x][y] = symbol_new
+                self.cells[x][y] = symbol
                 self.moves.remove((x, y))
+                return
 
     def read_cell(self, x, y):
         return self.cells[x][y]
@@ -159,12 +164,13 @@ class Grid:
         print("---------")
 
     def get_state(self):
+        # TODO: win is not always detected
         empty_cell = any([cell == " " for row in self.cells for cell in row])
         x3, o3 = False, False
         for coords in self.lines:
             line = [self.cells[x][y] for x, y in coords]
             x3 = x3 or all([c == 'X' for c in line])
-            o3 = o3 or all([c == 'X' for c in line])
+            o3 = o3 or all([c == 'O' for c in line])
         if not x3 and not o3:
             if empty_cell:
                 self.state = 'play'
